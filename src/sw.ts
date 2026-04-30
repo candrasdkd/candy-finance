@@ -15,6 +15,11 @@ declare const self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 clientsClaim();
 
+// Automatically skip waiting when a new version is installed
+self.addEventListener('install', () => {
+  self.skipWaiting();
+});
+
 // 1. Google Fonts CSS
 registerRoute(
   /^https:\/\/fonts\.googleapis\.com\/.*/i,
