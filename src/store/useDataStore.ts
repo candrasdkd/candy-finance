@@ -62,7 +62,13 @@ export const useDataStore = create<DataState>((set, get) => ({
       (snap) => {
         const data = snap.docs
           .map(d => ({ id: d.id, ...d.data() } as Transaction))
-          .sort((a, b) => b.date.localeCompare(a.date));
+          .sort((a, b) => {
+            const dateCompare = b.date.localeCompare(a.date);
+            if (dateCompare !== 0) return dateCompare;
+            const bTime = b.createdAt || '';
+            const aTime = a.createdAt || '';
+            return bTime.localeCompare(aTime);
+          });
         set({ transactions: data, txLoading: false, txError: null });
       },
       (err) => {

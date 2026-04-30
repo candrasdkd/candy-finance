@@ -3,10 +3,12 @@ import { useTransactions } from '../hooks/useTransactions';
 import { TransactionType, Category, INCOME_CATEGORIES, EXPENSE_CATEGORIES, MAX_AMOUNT, parseRupiah } from '../types';
 import { format } from 'date-fns';
 import { useSavingsStore } from '../store/useSavingsStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 export function useTransactionForm(onClose: () => void) {
   const { addTransaction } = useTransactions();
-  const { pots, depositToPot, withdrawFromPot } = useSavingsStore();
+  const { pots, initPots, depositToPot, withdrawFromPot } = useSavingsStore();
+  const coupleId = useAuthStore(s => s.userProfile?.coupleId);
   const [type, setType] = useState<TransactionType>('expense');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<Category>('makan');
@@ -19,6 +21,13 @@ export function useTransactionForm(onClose: () => void) {
 
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
   const isExpense = type === 'expense';
+
+  useEffect(() => {
+    if (coupleId) {
+      const unsub = initPots();
+      return () => unsub();
+    }
+  }, [coupleId, initPots]);
 
   useEffect(() => {
     setTimeout(() => amountRef.current?.focus(), 400);

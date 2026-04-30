@@ -83,7 +83,14 @@ export const useSavingsStore = create<SavingsState>((set, get) => ({
     const unsubTx = onSnapshot(
       txQ,
       (snap) => {
-        const txs = snap.docs.map(d => ({ id: d.id, ...d.data() } as PotTransaction));
+        const txs = snap.docs.map(d => ({ id: d.id, ...d.data() } as PotTransaction))
+          .sort((a, b) => {
+            const dateCompare = b.date.localeCompare(a.date);
+            if (dateCompare !== 0) return dateCompare;
+            const bTime = b.createdAt || '';
+            const aTime = a.createdAt || '';
+            return bTime.localeCompare(aTime);
+          });
         set({ potTransactions: txs });
       },
       (err) => {

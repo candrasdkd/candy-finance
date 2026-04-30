@@ -250,6 +250,14 @@ export default function Transactions() {
 
                           <div className="flex items-center gap-2 md:gap-3">
                             <span className="text-[9px] md:text-[10px] font-bold text-sage-400 uppercase tracking-widest shrink-0">{cat.label}</span>
+                            {tx.createdAt && (
+                              <>
+                                <div className="w-1 h-1 rounded-full bg-sage-100 shrink-0" />
+                                <span className="text-[9px] md:text-[10px] font-bold text-sage-400 uppercase tracking-widest shrink-0">
+                                  {format(parseISO(tx.createdAt), 'HH:mm')}
+                                </span>
+                              </>
+                            )}
                             <div className="w-1 h-1 rounded-full bg-sage-100 shrink-0" />
                             <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] md:text-[9px] font-bold tracking-tight uppercase ${isMine ? 'bg-sage-50 text-sage-600' : 'bg-rose-50 text-rose-500'
                               }`}>
