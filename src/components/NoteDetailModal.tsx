@@ -1,0 +1,366 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  X, Pin, Archive, Edit3, Trash2, MessageCircle, 
+  Inbox, Globe, ExternalLink, Check, Download,
+  ScanLine, Calendar, User, Loader2
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { FamilyNote } from '../types/note';
+
+interface NoteDetailModalProps {
+  note: FamilyNote | null;
+  onClose: () => void;
+  onEdit: (n: FamilyNote) => void;
+  onDelete: (n: FamilyNote) => void;
+  onPin: () => void;
+  onArchive: () => void;
+  onWhatsApp: (n: FamilyNote) => void;
+  onUpdate: (id: string, updates: Partial<FamilyNote>) => Promise<void>;
+}
+
+export default function NoteDetailModal({
+  note,
+  onClose,
+  onEdit,
+  onDelete,
+  onPin,
+  onArchive,
+  onWhatsApp,
+  onUpdate
+}: NoteDetailModalProps) {
+  const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  if (!note) return null;
+
+  const toggleCheckbox = async (idx: number) => {
+    const lines = note.content.split('\n');
+    const line = lines[idx];
+
+    let newLine = line;
+    const trimmed = line.trim();
+    if (trimmed.startsWith('>x')) {
+      newLine = line.replace(/>x\s?/, '> ');
+    } else if (trimmed.startsWith('>')) {
+      newLine = line.replace(/>\s?/, '>x ');
+    }
+
+    if (newLine !== line) {
+      lines[idx] = newLine;
+      await onUpdate(note.id, { content: lines.join('\n') });
+    }
+  };
+
+  const renderContent = () => {
+    const lines = note.content.split('\n');
+    return (
+      <div className="space-y-4">
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (trimmed === '') return <div key={idx} className="h-4" />;
+
+          // Improved header detection
+          const isMarkdownHeader = trimmed.startsWith('#');
+          const isAllCapsHeader = trimmed.length >= 3 && trimmed === trimmed.toUpperCase() && !trimmed.includes(':') && !trimmed.startsWith('>') && !trimmed.startsWith('-') && !trimmed.startsWith('*');
+          const isColonHeader = trimmed.endsWith(':') && !trimmed.includes(' ') && trimmed.length > 2; // e.g. "Header:"
+          
+          const isHeader = isMarkdownHeader || isAllCapsHeader || isColonHeader;
+
+          if (isHeader) {
+            const headerText = trimmed.replace(/^#+\s*/, '').replace(/:$/, '');
+            return (
+              <div key={idx} className="pt-6 pb-2">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-1.5 h-6 rounded-full bg-sage-900" />
+                  <h4 className="text-lg font-display font-bold text-sage-900 tracking-tight">
+                    {headerText}
+                  </h4>
+                </div>
+                <div className="h-px bg-sage-100 w-full" />
+              </div>
+            );
+          }
+
+          const isCheckbox = trimmed.startsWith('>') && !trimmed.startsWith('>>');
+          if (isCheckbox) {
+            const isChecked = trimmed.startsWith('>x');
+            const text = trimmed.replace(/^>x?\s?/, '').trim();
+            return (
+              <div
+                key={idx}
+                onClick={() => toggleCheckbox(idx)}
+                className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-200 cursor-pointer ${
+                  isChecked ? 'bg-sage-50/50 opacity-60' : 'bg-white shadow-sm border border-sage-100 hover:border-sage-200'
+                }`}
+              >
+                <div className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                  isChecked ? 'bg-sage-900 border-sage-900 text-white' : 'bg-white border-sage-200'
+                }`}>
+                  {isChecked && <Check className="w-4 h-4" strokeWidth={3} />}
+                </div>
+                <span className={`text-base leading-tight transition-all ${isChecked ? 'text-sage-400 line-through' : 'text-sage-800 font-medium'}`}>
+                  {text}
+                </span>
+              </div>
+            );
+          }
+
+          const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ');
+          if (isBullet) {
+            const text = trimmed.substring(2).trim();
+            return (
+              <div key={idx} className="flex items-start gap-4 px-2">
+                <div className="mt-2.5 w-2 h-2 rounded-full bg-sage-300 shrink-0" />
+                <span className="text-base text-sage-700 font-medium leading-relaxed">{text}</span>
+              </div>
+            );
+          }
+
+          const isUrl = /^(https?:\/\/[^\s]+)$/.test(trimmed);
+          if (isUrl) {
+            return (
+              <a
+                key={idx}
+                href={trimmed}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 p-5 rounded-[2rem] bg-sage-50 border border-sage-100 hover:border-sage-200 transition-all group/link"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm text-sage-600 group-hover/link:text-sage-900 transition-all duration-300">
+                  <Globe className="w-6 h-6" />
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-sm font-bold text-sage-900 truncate">
+                    {trimmed.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                  </span>
+                  <span className="text-xs text-sage-400 truncate">
+                    {trimmed}
+                  </span>
+                </div>
+                <ExternalLink className="w-5 h-5 text-sage-300" />
+              </a>
+            );
+          }
+
+          const colonIndex = line.indexOf(':');
+          if (colonIndex !== -1) {
+            const label = line.substring(0, colonIndex).trim();
+            const value = line.substring(colonIndex + 1).trim();
+            const isPassword = /pass|pwd|sandi|pin/i.test(label);
+            const isVisible = showPasswords[idx];
+
+            return (
+              <div key={idx} className="flex flex-col gap-1 bg-white p-5 rounded-[1.5rem] border border-sage-100 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-black text-sage-400 uppercase tracking-widest">{label}</span>
+                  {isPassword && (
+                    <button
+                      onClick={() => setShowPasswords(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                      className="px-3 py-1 rounded-lg bg-sage-50 text-[10px] font-bold text-sage-600 uppercase hover:bg-sage-100 transition-colors"
+                    >
+                      {isVisible ? 'Sembunyi' : 'Lihat'}
+                    </button>
+                  )}
+                </div>
+                <div className="text-lg font-bold text-sage-900 break-words pr-2">
+                  {isPassword && !isVisible ? (
+                    <span className="tracking-[0.4em] font-black text-sage-300">••••••••</span>
+                  ) : (
+                    value
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <p key={idx} className="text-sage-600 text-base leading-relaxed break-words font-medium px-2">
+              {line}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <AnimatePresence>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-sage-950/80 backdrop-blur-sm"
+            onClick={onClose}
+          />
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex-shrink-0 p-6 sm:p-8 border-b border-sage-50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-2xl md:text-3xl font-display text-sage-900 leading-tight">
+                    {note.title}
+                  </h2>
+                  <div className="flex items-center gap-3 text-sage-400">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        {format(note.createdAt as Date, 'd MMMM yyyy', { locale: id })}
+                      </span>
+                    </div>
+                    <div className="w-1 h-1 rounded-full bg-sage-200" />
+                    <div className="flex items-center gap-1">
+                      <User className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        Oleh {note.authorName}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="w-10 h-10 rounded-full bg-sage-50 flex items-center justify-center text-sage-400 hover:text-rose-500 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-8 scrollbar-hide">
+              <div className="space-y-8">
+                {/* Images */}
+                {(note.imageUrls || [note.imageUrl]).filter(Boolean).length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {(note.imageUrls || [note.imageUrl!]).map((url, i) => (
+                      <div 
+                        key={i} 
+                        className="group relative rounded-[2rem] overflow-hidden border border-sage-100 shadow-sm aspect-[4/3] cursor-zoom-in"
+                        onClick={() => setFullscreenImg(url!)}
+                      >
+                        <img src={url!} alt={`Lampiran ${i + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <ScanLine className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Text Content */}
+                <div className="relative">
+                  {renderContent()}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex-shrink-0 p-6 sm:p-8 bg-sage-50/50 border-t border-sage-100">
+              <div className="grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { onPin(); onClose(); }}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                      note.isPinned ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'bg-white text-sage-400 border border-sage-100'
+                    }`}
+                  >
+                    <Pin className={`w-5 h-5 ${note.isPinned ? 'fill-current' : 'rotate-45'}`} />
+                  </button>
+                  <button
+                    onClick={() => { onArchive(); onClose(); }}
+                    className="w-12 h-12 rounded-2xl bg-white text-sage-400 border border-sage-100 flex items-center justify-center"
+                  >
+                    {note.isArchived ? <Inbox className="w-5 h-5" /> : <Archive className="w-5 h-5" />}
+                  </button>
+                  <button
+                    onClick={() => onWhatsApp(note)}
+                    className="w-12 h-12 rounded-2xl bg-white text-green-600 border border-sage-100 flex items-center justify-center"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { onEdit(note); onClose(); }}
+                    className="flex-1 sm:flex-none px-6 py-3 bg-sage-900 text-white rounded-2xl font-bold text-sm hover:bg-black transition-all flex items-center justify-center gap-2"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => { onDelete(note); onClose(); }}
+                    className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+
+      {/* Fullscreen Preview */}
+      <AnimatePresence>
+        {fullscreenImg && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[250] bg-black/95 flex flex-col p-4 sm:p-8"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col">
+                <div className="text-white text-xs font-bold uppercase tracking-[0.2em]">Pratinjau Foto Catatan</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={isDownloading}
+                  onClick={async () => {
+                    if (isDownloading) return;
+                    setIsDownloading(true);
+                    try {
+                      const response = await fetch(fullscreenImg!);
+                      const blob = await response.blob();
+                      const blobUrl = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = blobUrl;
+                      link.download = `note_preview.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(blobUrl);
+                    } catch (e) {
+                      window.open(fullscreenImg!, '_blank');
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+                >
+                  {isDownloading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                </button>
+                <button onClick={() => setFullscreenImg(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 relative flex items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-sage-900/50">
+              <img src={fullscreenImg} className="max-w-full max-h-full object-contain" alt="Preview" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

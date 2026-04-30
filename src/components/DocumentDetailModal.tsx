@@ -333,9 +333,36 @@ export default function DocumentDetailModal({ doc, onClose, onDelete, onUpdate }
             onClick={() => setFullscreenImg(null)}
           >
             <div className="flex justify-end p-6">
-              <button className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={isDownloading}
+                  onClick={async () => {
+                    if (isDownloading) return;
+                    setIsDownloading(true);
+                    try {
+                      const response = await fetch(fullscreenImg!);
+                      const blob = await response.blob();
+                      const blobUrl = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = blobUrl;
+                      link.download = `document_preview.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(blobUrl);
+                    } catch (e) {
+                      window.open(fullscreenImg!, '_blank');
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }} className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors disabled:opacity-50"
+                >
+                  {isDownloading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6" />}
+                </button>
+                <button onClick={() => setFullscreenImg(null)} className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 flex items-center justify-center p-4 md:p-10 overflow-hidden">
               <motion.img

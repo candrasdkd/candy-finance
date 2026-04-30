@@ -45,6 +45,12 @@ CandyNest dirancang dengan standar desain tinggi:
 - **SaaS-Style UI**: Background dinamis, grid berpola modern, dan elemen transparan yang memberikan kesan eksklusif.
 - **Mobile First & PWA**: Navigasi *Bottom Bar* yang ergonomis untuk mobile dan *Dark Sidebar* profesional untuk desktop.
 
+## 🚀 Pembaruan Terbaru (Changelog)
+- **⚡ PWA Auto-Update (Android Fix)**: Service Worker kini dilengkapi dengan `self.skipWaiting()` yang memaksa aplikasi (terutama di Android) untuk langsung memuat versi terbaru tanpa perlu menutup *browser* sepenuhnya.
+- **⏱️ Pengurutan Transaksi Kronologis Presisi**: Transaksi tidak hanya diurutkan berdasarkan tanggal, namun juga menggunakan `createdAt` (jam & menit spesifik) untuk menjamin akurasi urutan mutasi dalam satu hari yang sama.
+- **🛡️ Safeguard Penghapusan Pos**: Saat sebuah Pos Tabungan dihapus, sistem dengan cerdas hanya menghapus riwayat mutasi internal Pos tersebut, namun tetap mempertahankan data transaksi utama di Dashboard untuk menjaga keutuhan riwayat finansial.
+- **📱 Responsivitas Layout**: Penyempurnaan Desktop Sidebar dengan kemampuan navigasi internal (*overflow-y-auto*) agar semua fitur dapat diakses meski pada layar beresolusi rendah.
+
 ---
 
 ## 🛠️ Tech Stack & Arsitektur
@@ -54,7 +60,6 @@ CandyNest dirancang dengan standar desain tinggi:
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
 - **Backend**: [Firebase](https://firebase.google.com/) (Firestore Real-time, Auth, Storage, Cloud Functions)
-- **OCR Engine**: [Google Cloud Vision API](https://cloud.google.com/vision)
 - **WhatsApp Gateway**: [Fonnte API](https://fonnte.com/)
 - **Deployment**: [Vercel](https://vercel.com/)
 

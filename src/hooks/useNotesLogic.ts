@@ -29,12 +29,19 @@ export const useNotesLogic = () => {
   const [fullScreenUrl, setFullScreenUrl] = useState<string | null>(null);
 
   const NOTE_COLORS = [
-    { name: 'Default', value: '#ffffff' },
-    { name: 'Rose', value: '#fff1f2' },
-    { name: 'Blue', value: '#eff6ff' },
-    { name: 'Green', value: '#f0fdf4' },
-    { name: 'Amber', value: '#fffbeb' },
-    { name: 'Purple', value: '#faf5ff' },
+    { name: 'Putih', value: '#ffffff' },
+    { name: 'Mawar', value: '#fff1f2' },
+    { name: 'Biru', value: '#eff6ff' },
+    { name: 'Hijau', value: '#f0fdf4' },
+    { name: 'Kuning', value: '#fffbeb' },
+    { name: 'Ungu', value: '#faf5ff' },
+    { name: 'Sage', value: '#f1f5f1' },
+    { name: 'Langit', value: '#f0f9ff' },
+    { name: 'Mint', value: '#f0fff4' },
+    { name: 'Lavender', value: '#f5f3ff' },
+    { name: 'Coklat', value: '#fafaf9' },
+    { name: 'Susu', value: '#fefce8' },
+    { name: 'Oranye', value: '#fff7ed' },
   ];
 
   const filteredNotes = useMemo(() => {
@@ -64,7 +71,7 @@ export const useNotesLogic = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.content.trim()) return;
+    if (!formData.title.trim() || !formData.content.trim()) return;
 
     if (editingNote) {
       confirm({

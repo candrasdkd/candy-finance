@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StickyNote, Plus, Search, Pin, X, Loader2, Archive, Inbox, Camera, ScanLine, HelpCircle, Info, Globe, Check } from 'lucide-react';
+import { StickyNote, Plus, Search, Pin, X, Loader2, Archive, Inbox, Camera, ScanLine, HelpCircle, Info, Globe, Check, Download } from 'lucide-react';
 import { useNotesLogic } from '../hooks/useNotesLogic';
 import { NoteCard } from '../components/NoteCard';
+import NoteDetailModal from '../components/NoteDetailModal';
+import { FamilyNote } from '../types/note';
 
 export default function Notes() {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedNoteForDetail, setSelectedNoteForDetail] = useState<FamilyNote | null>(null);
   const {
     notes,
     loading,
@@ -65,9 +70,10 @@ export default function Notes() {
           <div className="flex items-center justify-center md:justify-end gap-3">
             <button
               onClick={() => setShowHelp(true)}
-              className="w-12 h-12 rounded-2xl bg-white border border-sage-100 shadow-sm flex items-center justify-center text-sage-400 hover:text-sage-900 transition-all hover:shadow-md"
+              className="px-4 md:px-6 h-12 rounded-2xl bg-white border border-sage-100 shadow-sm flex items-center gap-2 text-sage-400 hover:text-sage-900 transition-all hover:shadow-md group shrink-0"
             >
-              <HelpCircle className="w-6 h-6" />
+              <HelpCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Panduan</span>
             </button>
             <button
               onClick={() => setIsAdding(true)}
@@ -93,7 +99,7 @@ export default function Notes() {
       {/* Formatting Guide Modal */}
       <AnimatePresence>
         {showHelp && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -107,90 +113,72 @@ export default function Notes() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
-              <div className="p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-sage-900 flex items-center justify-center text-white">
-                      <Info className="w-5 h-5" />
-                    </div>
-                    <h2 className="text-xl font-display text-sage-900">Panduan Format Pintar</h2>
+              <div className="p-8 sm:p-10 space-y-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-sage-900 flex items-center justify-center text-white shadow-lg shadow-sage-900/20">
+                    <HelpCircle className="w-6 h-6" />
                   </div>
-                  <button onClick={() => setShowHelp(false)} className="w-10 h-10 rounded-full bg-sage-50 flex items-center justify-center text-sage-400">
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div>
+                    <h2 className="text-2xl font-display text-sage-900 leading-tight">Panduan Menulis</h2>
+                    <p className="text-xs text-sage-400 font-bold uppercase tracking-widest">Cara buat catatan rapi & pintar</p>
+                  </div>
                 </div>
 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600">
-                        <Info className="w-3.5 h-3.5" />
-                      </div>
-                      <h3 className="text-sm font-bold text-sage-900">Keamanan Data Otomatis</h3>
+                <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 scrollbar-hide">
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shrink-0 shadow-sm">
+                      <Check className="w-5 h-5" />
                     </div>
-                    <div className="bg-sage-50 p-4 rounded-2xl space-y-3 border border-sage-100">
-                      <div>
-                        <p className="text-[10px] font-bold text-sage-400 uppercase tracking-widest mb-1">Cara Tulis:</p>
-                        <p className="text-xs font-mono bg-white p-2 rounded-lg border border-sage-100">Sandi: 123456</p>
-                      </div>
-                      <p className="text-xs text-sage-500 leading-relaxed">Gunakan tanda <span className="font-bold">titik dua (:)</span>. Jika baris tersebut mengandung kata <span className="font-bold italic">Sandi/Password/PIN</span>, sistem akan otomatis menyensor nilainya untuk keamanan.</p>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-sage-900">Ceklis Interaktif</h3>
+                      <p className="text-xs text-sage-500 leading-relaxed">
+                        Gunakan <code className="bg-sage-50 px-1.5 py-0.5 rounded font-mono text-rose-600 font-bold">&gt;</code> di awal baris. Klik teksnya di layar buat centang otomatis.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                        <Check className="w-3.5 h-3.5" />
-                      </div>
-                      <h3 className="text-sm font-bold text-sage-900">Daftar Ceklis Interaktif</h3>
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
+                      <Globe className="w-5 h-5" />
                     </div>
-                    <div className="bg-sage-50 p-4 rounded-2xl space-y-3 border border-sage-100">
-                      <div>
-                        <p className="text-[10px] font-bold text-sage-400 uppercase tracking-widest mb-1">Cara Tulis:</p>
-                        <p className="text-xs font-mono bg-white p-2 rounded-lg border border-sage-100">&gt; Beli Gula</p>
-                      </div>
-                      <p className="text-xs text-sage-500 leading-relaxed">Gunakan tanda <span className="font-bold">lebih besar (&gt;)</span>. Kamu bisa langsung klik teksnya di layar untuk mencentang barang yang sudah selesai.</p>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-sage-900">Tautan Pintar</h3>
+                      <p className="text-xs text-sage-500 leading-relaxed">
+                        Tempel <code className="bg-sage-50 px-1.5 py-0.5 rounded font-mono text-blue-600 font-bold">https://...</code> biar jadi link yang bisa diklik langsung.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-green-100 flex items-center justify-center text-green-600">
-                        <StickyNote className="w-3.5 h-3.5" />
-                      </div>
-                      <h3 className="text-sm font-bold text-sage-900">Daftar Poin & Catatan Biasa</h3>
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
+                      <Info className="w-5 h-5" />
                     </div>
-                    <div className="bg-sage-50 p-4 rounded-2xl space-y-3 border border-sage-100">
-                      <div>
-                        <p className="text-[10px] font-bold text-sage-400 uppercase tracking-widest mb-1">Cara Tulis:</p>
-                        <p className="text-xs font-mono bg-white p-2 rounded-lg border border-sage-100">- Barang Bawaan</p>
-                      </div>
-                      <p className="text-xs text-sage-500 leading-relaxed">Gunakan tanda <span className="font-bold">minus (-)</span> untuk list poin. Kamu juga bisa menulis bebas seperti biasa tanpa format apapun.</p>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-sage-900">Label & Password</h3>
+                      <p className="text-xs text-sage-500 leading-relaxed">
+                        Tulis <code className="bg-sage-50 px-1.5 py-0.5 rounded font-mono text-amber-600 font-bold">Label: Nilai</code>. Kata "Pass/PIN" bakal bikin nilainya otomatis disensor.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                        <Globe className="w-3.5 h-3.5" />
-                      </div>
-                      <h3 className="text-sm font-bold text-sage-900">Tautan & Link Aktif</h3>
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-sage-100 flex items-center justify-center text-sage-600 shrink-0 shadow-sm">
+                      <StickyNote className="w-5 h-5" />
                     </div>
-                    <div className="bg-sage-50 p-4 rounded-2xl space-y-3 border border-sage-100">
-                      <div>
-                        <p className="text-[10px] font-bold text-sage-400 uppercase tracking-widest mb-1">Cara Tulis:</p>
-                        <p className="text-xs font-mono bg-white p-2 rounded-lg border border-sage-100">https://google.com</p>
-                      </div>
-                      <p className="text-xs text-sage-500 leading-relaxed">Tempelkan <span className="font-bold">URL lengkap</span>. Otomatis menjadi link yang bisa diklik. Bisa juga ditaruh setelah titik dua (:) pada label.</p>
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-sage-900">Header & Section</h3>
+                      <p className="text-xs text-sage-500 leading-relaxed">
+                        Pakai <code className="bg-sage-50 px-1.5 py-0.5 rounded font-mono text-sage-900 font-bold"># Judul</code> atau **HURUF KAPITAL** buat bikin pemisah section yang rapi.
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setShowHelp(false)}
-                  className="w-full py-4 bg-sage-100 text-sage-700 rounded-2xl font-bold hover:bg-sage-200 transition-all"
+                  className="w-full py-4 bg-sage-900 text-white rounded-2xl font-bold shadow-xl shadow-sage-900/20 hover:bg-black transition-all active:scale-[0.98]"
                 >
-                  Mengerti
+                  Siap, Saya Mengerti!
                 </button>
               </div>
             </motion.div>
@@ -283,6 +271,7 @@ export default function Notes() {
                     onArchive={() => archiveNote(note.id, !note.isArchived)}
                     onWhatsApp={handleWhatsAppExport}
                     onUpdate={updateNote}
+                    onClick={setSelectedNoteForDetail}
                   />
                 ))}
               </div>
@@ -305,6 +294,7 @@ export default function Notes() {
                     onArchive={() => archiveNote(note.id, !note.isArchived)}
                     onWhatsApp={handleWhatsAppExport}
                     onUpdate={updateNote}
+                    onClick={setSelectedNoteForDetail}
                   />
                 ))}
               </div>
@@ -318,6 +308,26 @@ export default function Notes() {
           )}
         </div>
       )}
+
+      {/* Detail Modal */}
+      <NoteDetailModal
+        note={selectedNoteForDetail}
+        onClose={() => setSelectedNoteForDetail(null)}
+        onEdit={startEdit}
+        onDelete={handleDelete}
+        onPin={() => {
+          if (selectedNoteForDetail) {
+            updateNote(selectedNoteForDetail.id, { isPinned: !selectedNoteForDetail.isPinned });
+          }
+        }}
+        onArchive={() => {
+          if (selectedNoteForDetail) {
+            archiveNote(selectedNoteForDetail.id, !selectedNoteForDetail.isArchived);
+          }
+        }}
+        onWhatsApp={handleWhatsAppExport}
+        onUpdate={updateNote}
+      />
 
       {/* Add/Edit Modal */}
       <AnimatePresence>
@@ -354,9 +364,10 @@ export default function Notes() {
 
                 <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 scrollbar-hide">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-sage-400 uppercase tracking-widest ml-1">Judul (Opsional)</label>
+                    <label className="text-[10px] font-bold text-sage-400 uppercase tracking-widest ml-1">Judul Catatan</label>
                     <input
                       type="text"
+                      required
                       placeholder="Contoh: Daftar Belanja"
                       value={formData.title}
                       onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -475,13 +486,13 @@ export default function Notes() {
 
                   <div className="space-y-3">
                     <label className="text-[10px] font-bold text-sage-400 uppercase tracking-widest ml-1">Pilih Warna</label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       {NOTE_COLORS.map(c => (
                         <button
                           key={c.value}
                           type="button"
                           onClick={() => setFormData({ ...formData, color: c.value })}
-                          className={`w-10 h-10 rounded-full border-2 transition-all ${formData.color === c.value ? 'border-sage-900 scale-110 shadow-lg' : 'border-white'
+                          className={`w-10 h-10 rounded-full border-2 transition-all ${formData.color === c.value ? 'border-sage-900 scale-110 shadow-lg' : 'border-sage-100 shadow-sm'
                             }`}
                           style={{ backgroundColor: c.value }}
                           title={c.name}
@@ -531,9 +542,36 @@ export default function Notes() {
                 <div className="text-white text-xs font-bold uppercase tracking-[0.2em]">Pratinjau Foto Catatan</div>
                 <div className="text-white/40 text-[9px] uppercase tracking-widest mt-1">Pastikan foto lampiran tetap terlihat jelas</div>
               </div>
-              <button onClick={() => setFullScreenUrl(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={isDownloading}
+                  onClick={async () => {
+                    if (isDownloading) return;
+                    setIsDownloading(true);
+                    try {
+                      const response = await fetch(fullScreenUrl!);
+                      const blob = await response.blob();
+                      const blobUrl = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = blobUrl;
+                      link.download = `note_preview.jpg`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      window.URL.revokeObjectURL(blobUrl);
+                    } catch (e) {
+                      window.open(fullScreenUrl!, '_blank');
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all disabled:opacity-50"
+                >
+                  {isDownloading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                </button>
+                <button onClick={() => setFullScreenUrl(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-all">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 relative flex items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-sage-900/50">
               <img src={fullScreenUrl} className="max-w-full max-h-full object-contain" alt="Preview" />

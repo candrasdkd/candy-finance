@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Upload, FileText, ChevronDown, FolderOpen, Loader2, Filter, X, CheckCircle2, Download, User, AlertCircle } from 'lucide-react';
 import { useDocuments, CATEGORY_INFO, DocCategory } from '../hooks/useDocuments';
@@ -32,6 +33,8 @@ export default function Documents() {
     getInitials,
     getUploaderName
   } = useDocuments();
+
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -251,6 +254,47 @@ export default function Documents() {
                           <span className="hidden xs:inline tracking-wide">{info.label}</span>
                         </span>
                       </div>
+
+                      {/* Direct Download Button */}
+                      {!isSelectMode && (
+                        <button
+                          disabled={downloadingId === doc.id}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            setDownloadingId(doc.id);
+                            const urls = doc.imageUrls || [doc.imageUrl!];
+                            try {
+                              for (let i = 0; i < urls.length; i++) {
+                                try {
+                                  const response = await fetch(urls[i]);
+                                  const blob = await response.blob();
+                                  const blobUrl = window.URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = blobUrl;
+                                  link.download = `${doc.name}_hal_${i + 1}.jpg`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  window.URL.revokeObjectURL(blobUrl);
+                                } catch (err) {
+                                  window.open(urls[i], '_blank');
+                                }
+                              }
+                            } finally {
+                              setDownloadingId(null);
+                            }
+                          }}
+                          className={`absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm p-2 rounded-xl shadow-lg text-sage-600 hover:text-sage-900 transition-all z-20 hover:scale-105 active:scale-95 border border-sage-100 ${
+                            downloadingId === doc.id ? 'opacity-100' : 'opacity-100 md:opacity-0 md:group-hover:opacity-100'
+                          }`}
+                        >
+                          {downloadingId === doc.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-sage-900" />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
 
                       {/* Multi-page indicator */}
                       {safeUrls.length > 1 && (
