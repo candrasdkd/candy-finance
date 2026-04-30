@@ -143,8 +143,7 @@ export const useSavingsStore = create<SavingsState>((set, get) => ({
       .filter(tx => tx.potId === id)
       .forEach(tx => batch.delete(doc(db, 'potTransactions', tx.id)));
 
-    const mainTxs = useDataStore.getState().transactions.filter(tx => tx.relatedPotId === id);
-    mainTxs.forEach(tx => batch.delete(doc(db, 'transactions', tx.id)));
+    // Do NOT delete main transactions (mainTxs) because user wants to keep their financial records
 
     await batch.commit();
   },
