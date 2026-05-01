@@ -9,6 +9,13 @@ Aplikasi manajemen keluarga modern dan *premium* yang dirancang untuk membantu p
 ### 💰 Dashboard Keuangan Visioner
 Tampilan kartu saldo dengan gaya *Glassmorphism* yang elegan. Dilengkapi dengan grafik tren 7-hari yang interaktif dan kalkulasi akumulasi tabungan seluruh waktu secara otomatis.
 
+### ✨ Perencanaan Bulanan (Monthly Allocation) — *New!*
+Pindahkan perencanaan keuangan dari spreadsheet ke aplikasi:
+- **Jatah Pasangan**: Bagi tanggung jawab pembayaran item tertentu (seperti cicilan, belanja, atau listrik) secara transparan.
+- **User-Aware Mapping**: Sistem cerdas yang menjamin data tidak akan tertukar; kolom "Saya" akan selalu menampilkan jatah Anda, dan kolom "Pasangan" menampilkan jatah pasangan Anda, siapa pun yang sedang login.
+- **Bento Box Stats**: Ringkasan total jatah masing-masing dan *Grand Total* dalam tampilan kartu yang modern.
+- **Native Share**: Bagikan rincian perencanaan bulanan ke pasangan via teks rapi yang bisa dikirim ke aplikasi pesan apa pun.
+
 ### 📝 Catatan Pintar (Smart Notes) — *New!*
 Bukan sekadar catatan biasa. Sistem cerdas kami mengenali apa yang Anda tulis:
 - 🔒 **Auto-Sensor**: Otomatis menyensor kata sandi/PIN jika Anda menggunakan format `Label: Nilai`.
@@ -23,7 +30,7 @@ Kelola target masa depan dengan sistem pos (envelopes):
 - **Riwayat Mutasi**: Setiap uang masuk dan keluar dicatat dengan detail siapa yang melakukan perubahan.
 
 ### 📂 Brankas Dokumen (Smart OCR)
-Simpan KTP, KK, Akta, dan dokumen penting lainnya di satu tempat aman. Dilengkapi teknologi **OCR (Optical Character Recognition)** untuk ekstrak data teks secara otomatis dari foto dokumen Anda.
+Simpan KTP, KK, Akta, dan dokumen penting lainnya di satu tempat aman
 
 ### 💑 Sinkronisasi Pasangan (Couple Sync)
 Hubungkan akun dengan pasangan menggunakan *kode undangan unik*. Semua data (transaksi, catatan, & dokumen) akan tersinkronisasi secara otomatis di kedua perangkat tanpa jeda.
@@ -35,7 +42,8 @@ Atur batas pengeluaran bulanan per kategori. Indikator visual dinamis akan membe
 Bagikan ringkasan keuangan bulanan langsung ke WhatsApp pasangan atau simpan sebagai laporan dengan fitur *Native Share* yang rapi dan informatif.
 
 ### 🔔 Reminder Ganda (WA & Web Push)
-Pengingat otomatis yang dikirimkan setiap jam **12:00 & 19:00** jika belum ada catatan transaksi hari ini. Notifikasi dikirim melalui WhatsApp (Fonnte API) dan Web Push secara bersamaan.
+Pengingat otomatis yang cerdas:
+- **Harian (12:00 & 19:00)**: Pengingat via WA & Push jika belum ada transaksi hari ini.
 
 ---
 
@@ -46,10 +54,10 @@ CandyNest dirancang dengan standar desain tinggi:
 - **Mobile First & PWA**: Navigasi *Bottom Bar* yang ergonomis untuk mobile dan *Dark Sidebar* profesional untuk desktop.
 
 ## 🚀 Pembaruan Terbaru (Changelog)
-- **⚡ PWA Auto-Update (Android Fix)**: Service Worker kini dilengkapi dengan `self.skipWaiting()` yang memaksa aplikasi (terutama di Android) untuk langsung memuat versi terbaru tanpa perlu menutup *browser* sepenuhnya.
-- **⏱️ Pengurutan Transaksi Kronologis Presisi**: Transaksi tidak hanya diurutkan berdasarkan tanggal, namun juga menggunakan `createdAt` (jam & menit spesifik) untuk menjamin akurasi urutan mutasi dalam satu hari yang sama.
-- **🛡️ Safeguard Penghapusan Pos**: Saat sebuah Pos Tabungan dihapus, sistem dengan cerdas hanya menghapus riwayat mutasi internal Pos tersebut, namun tetap mempertahankan data transaksi utama di Dashboard untuk menjaga keutuhan riwayat finansial.
-- **📱 Responsivitas Layout**: Penyempurnaan Desktop Sidebar dengan kemampuan navigasi internal (*overflow-y-auto*) agar semua fitur dapat diakses meski pada layar beresolusi rendah.
+- **✨ Fitur Perencanaan Bulanan**: Implementasi sistem alokasi biaya antar pasangan dengan dukungan *real-time sync* dan mapping User ID yang presisi.
+- **🔗 Integrasi Web Share API**: Berbagi rincian perencanaan kini lebih mudah dengan format teks otomatis yang kompatibel dengan semua aplikasi *messaging*.
+- **⚡ PWA Auto-Update (Android Fix)**: Service Worker kini dilengkapi dengan `self.skipWaiting()` yang memaksa aplikasi untuk langsung memuat versi terbaru.
+- **⏱️ Pengurutan Transaksi Kronologis**: Transaksi diurutkan menggunakan `createdAt` untuk menjamin akurasi urutan mutasi dalam satu hari yang sama.
 
 ---
 
