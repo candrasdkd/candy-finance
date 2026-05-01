@@ -82,7 +82,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                   set((state) => ({
                     userProfile: state.userProfile ? {
                       ...state.userProfile,
-                      partnerName: partnerData.displayName
+                      partnerName: partnerData.displayName,
+                      partnerUid: partnerData.uid
                     } : null
                   }));
                 }
@@ -115,6 +116,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       coupleId: null,
       partnerEmail: null,
       partnerName: null,
+      partnerUid: null,
       inviteCode,
       gender,
     };
@@ -166,12 +168,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     batch.update(doc(db, 'users', currentUser.uid), {
       coupleId: coupleRef.id,
       partnerEmail: partnerData.email,
-      partnerName: partnerData.displayName
+      partnerName: partnerData.displayName,
+      partnerUid: partnerData.uid
     });
     batch.update(doc(db, 'users', partnerData.uid), {
       coupleId: coupleRef.id,
       partnerEmail: currentUser.email,
-      partnerName: userProfile.displayName
+      partnerName: userProfile.displayName,
+      partnerUid: currentUser.uid
     });
     await batch.commit();
     await refreshProfile();

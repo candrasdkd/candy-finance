@@ -56,6 +56,17 @@ export interface Budget {
   month: string; // YYYY-MM
 }
 
+export interface MonthlyAllocation {
+  id: string;
+  coupleId: string;
+  name: string;
+  amountA: number;
+  userIdA: string;
+  amountB: number;
+  userIdB: string;
+  order: number;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -63,6 +74,7 @@ export interface UserProfile {
   coupleId: string | null;
   partnerEmail: string | null;
   partnerName: string | null;
+  partnerUid: string | null;
   inviteCode: string;
   gender: 'male' | 'female' | null;
   fcmTokens?: string[];
@@ -140,7 +152,7 @@ export const POT_COLORS = [
   '#5C7FA3', // Steel Blue
 ];
 
-export const POT_EMOJIS = ['🍜','🎁','🏥','🚗','📚','✈️','🏠','💎','🎮','👗','💪','🐾','🎵','🌱','☕'];
+export const POT_EMOJIS = ['🍜', '🎁', '🏥', '🚗', '📚', '✈️', '🏠', '💎', '🎮', '👗', '💪', '🐾', '🎵', '🌱', '☕'];
 
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {

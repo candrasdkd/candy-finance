@@ -28,6 +28,7 @@ import { useTransactions } from '../hooks/useTransactions';
 import { formatRupiah, getCategoryInfo } from '../types';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 import TransactionModal from '../components/TransactionModal';
+import MonthlyAllocationTable from '../components/MonthlyAllocationTable';
 import { Link } from 'react-router-dom';
 
 const containerVariants: Variants = {
@@ -285,6 +286,11 @@ export default function Dashboard() {
           )}
         </motion.div>
       </div>
+
+      {/* Monthly Allocation Plan */}
+      <motion.div variants={itemVariants}>
+        <MonthlyAllocationTable hideActions={true} />
+      </motion.div>
 
       {/* Charts & Trends Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

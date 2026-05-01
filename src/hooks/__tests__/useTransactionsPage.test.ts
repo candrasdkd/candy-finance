@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useTransactionsPage } from '../useTransactionsPage';
 import { useTransactions } from '../useTransactions';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -30,6 +30,9 @@ describe('useTransactionsPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-04-15'));
+    
     (useAuthStore as any).mockReturnValue({ displayName: 'User' });
     (useTransactions as any).mockReturnValue({
       transactions: mockTransactions,
@@ -37,6 +40,10 @@ describe('useTransactionsPage', () => {
       error: null,
       deleteTransaction: vi.fn()
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('seharusnya menghitung total income dan expense dengan benar', () => {

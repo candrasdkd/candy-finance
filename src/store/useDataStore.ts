@@ -10,20 +10,24 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Transaction, Budget } from '../types';
+import { Transaction, Budget, MonthlyAllocation } from '../types';
 import { useAuthStore } from './useAuthStore';
 
 interface DataState {
   transactions: Transaction[];
   budgets: Budget[];
+  allocations: MonthlyAllocation[];
   txLoading: boolean;
   budgetLoading: boolean;
+  allocationLoading: boolean;
   txError: string | null;
   budgetError: string | null;
+  allocationError: string | null;
 
   // Listeners
   initTransactions: () => () => void;
   initBudgets: () => () => void;
+  initAllocations: () => () => void;
   clearData: () => void;
 
   // Actions
@@ -31,15 +35,23 @@ interface DataState {
   deleteTransaction: (id: string) => Promise<void>;
   setBudget: (category: string, limit: number, month: string) => Promise<void>;
   deleteBudget: (id: string) => Promise<void>;
+  
+  // Allocation Actions
+  addAllocation: (data: Omit<MonthlyAllocation, 'id' | 'coupleId'>) => Promise<void>;
+  updateAllocation: (id: string, data: Partial<MonthlyAllocation>) => Promise<void>;
+  deleteAllocation: (id: string) => Promise<void>;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
   transactions: [],
   budgets: [],
+  allocations: [],
   txLoading: true,
   budgetLoading: true,
+  allocationLoading: true,
   txError: null,
   budgetError: null,
+  allocationError: null,
 
   initTransactions: () => {
     const { transactions, txLoading } = get();
@@ -111,6 +123,35 @@ export const useDataStore = create<DataState>((set, get) => ({
     return unsub;
   },
 
+  initAllocations: () => {
+    const userProfile = useAuthStore.getState().userProfile;
+    if (!userProfile?.coupleId) {
+      set({ allocations: [], allocationLoading: false });
+      return () => {};
+    }
+
+    const q = query(
+      collection(db, 'allocations'),
+      where('coupleId', '==', userProfile.coupleId)
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const data = snap.docs
+          .map(d => ({ id: d.id, ...d.data() } as MonthlyAllocation))
+          .sort((a, b) => (a.order || 0) - (b.order || 0));
+        set({ allocations: data, allocationLoading: false, allocationError: null });
+      },
+      (err) => {
+        console.error('Firestore Error:', err);
+        set({ allocationError: 'Gagal memuat data alokasi.', allocationLoading: false });
+      }
+    );
+
+    return unsub;
+  },
+
   addTransaction: async (data) => {
     const userProfile = useAuthStore.getState().userProfile;
     if (!userProfile?.coupleId) throw new Error('Belum terhubung dengan pasangan');
@@ -151,14 +192,34 @@ export const useDataStore = create<DataState>((set, get) => ({
     await deleteDoc(doc(db, 'budgets', id));
   },
 
+  addAllocation: async (data) => {
+    const userProfile = useAuthStore.getState().userProfile;
+    if (!userProfile?.coupleId) throw new Error('Belum terhubung dengan pasangan');
+    await addDoc(collection(db, 'allocations'), {
+      ...data,
+      coupleId: userProfile.coupleId,
+    });
+  },
+
+  updateAllocation: async (id, data) => {
+    await updateDoc(doc(db, 'allocations', id), data);
+  },
+
+  deleteAllocation: async (id) => {
+    await deleteDoc(doc(db, 'allocations', id));
+  },
+
   clearData: () => {
     set({
       transactions: [],
       budgets: [],
+      allocations: [],
       txLoading: true,
       budgetLoading: true,
+      allocationLoading: true,
       txError: null,
-      budgetError: null
+      budgetError: null,
+      allocationError: null
     });
   }
 }));
